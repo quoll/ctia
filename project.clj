@@ -19,6 +19,7 @@
                  [clojurewerkz/elastisch "2.2.1"]
                  [korma "0.4.2"]
                  [org.clojure/java.jdbc "0.3.7"] ; specified by korma
+                 [com.taoensso/carmine "2.12.2"]
 
                  ;; Docs
                  [markdown-clj "0.9.86"]
