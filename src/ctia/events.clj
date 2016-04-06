@@ -2,13 +2,15 @@
   (:require [ctia.events.schemas :as es]
             [ctia.schemas.common :as c]
             [ctia.schemas.verdict :as v]
+            [ctia.store :refer [create-judgement delete-judgement]]
             [clj-time.core :as time]
             [clojure.core.async :as a]
             [schema.core :as s])
   (:import [clojure.core.async Mult]
            [clojure.core.async.impl.protocols Channel]
            [clojure.core.async.impl.buffers FixedBuffer]
-           [java.util Map]))
+           [java.util Map]
+           [ctia.store IJudgementStore]))
 
 (def shutdown-max-wait-ms (* 1000 60 60))
 (def ^:dynamic *event-buffer-size* 1000)
@@ -152,3 +154,21 @@
    Defaults to attempting to get *event-buffer-size* events."
   ([] (recent-events *event-buffer-size*))
   ([n :- Long] (take n (drain (:recent @central-channel)))))
+
+
+
+(s/defn register-judgement-store :- Channel
+  "creates a GO loop to direct events to a store"
+  [store :- IJudgementStore
+   {m :mult :as ec} :- EventChannel
+   login]
+  (go (loop [event (<! m)]
+        (let [{t :type} event]
+          (condp = t
+            ;; TODO - check that this interpretation of model-type is correct
+            es/CreateEventType (when (= sj/Type (:model-type event))
+                                 (create-judgement store login judgement))
+            es/DeleteEventType (delete-judgement store (:id event))
+            nil)
+          (recur (<! m))))))
+  
