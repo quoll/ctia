@@ -9,7 +9,9 @@
                  [com.rpl/specter "0.9.2"]
                  [org.clojure/core.async "0.2.374"]
                  [clj-http "2.0.1"]
+                 [org.slf4j/slf4j-log4j12 "1.7.21"]
                  [org.clojure/core.memoize "0.5.8"]
+                 [org.clojure/tools.logging "0.3.1"]
 
                  ;; Web server
                  [metosin/compojure-api "1.0.0"]
@@ -31,14 +33,17 @@
          :nrepl {:start? true}}
   :uberjar-name "server.jar"
   :min-lein-version "2.4.0"
-  :test-selectors {:memory-store :memory-store
+  :test-selectors {:atom-store :atom-store
                    :sql-store :sql-store
                    :es-store :es-store
+                   :es-producer :es-producer
                    :default #(not (or (:es-store %)
+                                      (:es-producer %)
                                       (:integration %)
                                       (:regression %)))
                    :integration #(or (:es-store %)
-                                     (:integation %))}
+                                     (:integation %)
+                                     (:es-producer %))}
 
   :profiles {:dev {:dependencies [[cheshire "5.5.0"]
                                   [javax.servlet/servlet-api "2.5"]

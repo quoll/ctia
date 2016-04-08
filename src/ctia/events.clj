@@ -1,5 +1,6 @@
 (ns ctia.events
   (:require [ctia.events.schemas :as es]
+            [ctia.lib.time :as time]
             [ctia.schemas.common :as c]
             [ctia.schemas.verdict :as v]
             [ctia.store :refer [create-judgement delete-judgement]]

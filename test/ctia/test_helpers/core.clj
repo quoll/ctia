@@ -4,17 +4,8 @@
             [ctia.auth.allow-all :as aa]
             [ctia.properties :as props]
             [ctia.store :as store]
-            [ctia.stores.memory.actor :as ma]
-            [ctia.stores.memory.campaign :as mca]
-            [ctia.stores.memory.coa :as mco]
-            [ctia.stores.memory.exploit-target :as me]
-            [ctia.stores.memory.feedback :as mf]
-            [ctia.stores.memory.identity :as mi]
-            [ctia.stores.memory.incident :as mic]
-            [ctia.stores.memory.indicator :as min]
-            [ctia.stores.memory.judgement :as mj]
-            [ctia.stores.memory.sighting :as ms]
-            [ctia.stores.memory.ttp :as mt]
+            [ctia.stores.atom.store :as as]
+            [ctia.events.producer :as producer]
             [cheshire.core :as json]
             [clj-http.client :as http]
             [clojure.data :as cd]
@@ -37,7 +28,8 @@
                         :expected '~form, :actual nil})))))
 
 (defn fixture-properties [f]
-  (props/init! "ctia-test.properties")
+  (with-redefs [props/files ["ctia-test.properties"]]
+    (props/init!))
   (f))
 
 
@@ -55,18 +47,18 @@
   (fn []
     (f (atom {}))))
 
-(def memory-stores
-  {store/actor-store          (init-atom ma/->ActorStore)
-   store/judgement-store      (init-atom mj/->JudgementStore)
-   store/feedback-store       (init-atom mf/->FeedbackStore)
-   store/campaign-store       (init-atom mca/->CampaignStore)
-   store/coa-store            (init-atom mco/->COAStore)
-   store/exploit-target-store (init-atom me/->ExploitTargetStore)
-   store/incident-store       (init-atom mic/->IncidentStore)
-   store/indicator-store      (init-atom min/->IndicatorStore)
-   store/sighting-store       (init-atom ms/->SightingStore)
-   store/ttp-store            (init-atom mt/->TTPStore)
-   store/identity-store       (init-atom mi/->IdentityStore)})
+(def atom-stores
+  {store/actor-store          (init-atom as/->ActorStore)
+   store/judgement-store      (init-atom as/->JudgementStore)
+   store/feedback-store       (init-atom as/->FeedbackStore)
+   store/campaign-store       (init-atom as/->CampaignStore)
+   store/coa-store            (init-atom as/->COAStore)
+   store/exploit-target-store (init-atom as/->ExploitTargetStore)
+   store/incident-store       (init-atom as/->IncidentStore)
+   store/indicator-store      (init-atom as/->IndicatorStore)
+   store/sighting-store       (init-atom as/->SightingStore)
+   store/ttp-store            (init-atom as/->TTPStore)
+   store/identity-store       (init-atom as/->IdentityStore)})
 
 (defn fixture-store [store-map]
   (fn [f]
@@ -76,7 +68,16 @@
     (doseq  [store (keys store-map)]
       (reset! store nil))))
 
-(def fixture-in-memory-store (fixture-store memory-stores))
+(defn fixture-producers [producers]
+  (fn [f]
+    (dorun
+     (map (fn [impl-fn]
+            (swap! producer/event-producers conj (impl-fn))) producers))
+    (f)
+    (reset! producer/event-producers [])))
+
+
+(def fixture-atom-store (fixture-store atom-stores))
 
 (def http-port 3000)
 
@@ -86,7 +87,9 @@
     (let [server (jetty/run-jetty app
                                   {:host "localhost"
                                    :port port
-                                   :join? false})]
+                                   :join? false
+                                   :max-threads 10
+                                   :min-threads 9})]
       (f)
       (.stop server))))
 
@@ -138,7 +141,9 @@
 (defn get [path & {:as options}]
   (let [options
         (merge {:accept :edn
-                :throw-exceptions false}
+                :throw-exceptions false
+                :socket-timeout 10000
+                :conn-timeout 10000}
                options)
 
         response
@@ -152,8 +157,8 @@
         (merge {:content-type :edn
                 :accept :edn
                 :throw-exceptions false
-                :socket-timeout 2000
-                :conn-timeout 2000}
+                :socket-timeout 10000
+                :conn-timeout 10000}
                options)
 
         response
@@ -173,8 +178,8 @@
         (merge {:content-type :edn
                 :accept :edn
                 :throw-exceptions false
-                :socket-timeout 2000
-                :conn-timeout 2000}
+                :socket-timeout 10000
+                :conn-timeout 10000}
                options)
 
         response

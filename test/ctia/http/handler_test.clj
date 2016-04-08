@@ -37,12 +37,12 @@
 
 (defmacro deftest-for-each-store [test-name & body]
   `(helpers/deftest-for-each-fixture ~test-name
-     {:memory-store helpers/fixture-in-memory-store
+     {:atom-store helpers/fixture-atom-store
       :sql-store    (join-fixtures [db-helpers/fixture-sql-store
                                     db-helpers/fixture-clean-db])
 
-      :es-store     (join-fixtures [index-helpers/fixture-es-store
-                                    index-helpers/fixture-clean-index])}
+      :es-store     (join-fixtures [(index-helpers/fixture-es-store)
+                                    index-helpers/fixture-clean-store-index])}
 
 
      ~@body))
@@ -1621,7 +1621,7 @@
   (helpers/set-capabilities! "foouser" "user" all-capabilities)
   (whoami-helpers/set-whoami-response "45c1f5e3f05d0" "foouser" "user")
 
-  ;; This test case catches a bug that was in the in-memory store
+  ;; This test case catches a bug that was in the atom store
   ;; It tests the code path where priority is equal but dispositions differ
   (testing "test setup: create a judgement (1)"
     (let [response (post "ctia/judgement"
@@ -1657,7 +1657,7 @@
       (is (= 200 (:status response)))
 
       (testing "GET /ctia/:observable_type/:observable_value/verdict"
-        (with-redefs [clj-time.core/now (constantly (c/timestamp "2016-02-12T15:42:58.232-00:00"))]
+        (with-redefs [ctia.lib.time/now (constantly (ctia.lib.time/timestamp "2016-02-12T15:42:58.232-00:00"))]
           (let [response (get "ctia/ip/10.0.0.1/verdict"
                               :headers {"api_key" "45c1f5e3f05d0"})
                 verdict (:parsed-body response)]

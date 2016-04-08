@@ -326,7 +326,7 @@
      :type string
      :title string
      :alternate_ids string
-     :version {:type "integer"}
+     :version string
      :negate {:type "boolean"}
      :indicator_type string
      :observable observable
@@ -506,7 +506,7 @@
      :created ts
      :modified ts}}})
 
-(def mappings
+(def store-mappings
   (merge {}
          judgement-mapping
          indicator-mapping
