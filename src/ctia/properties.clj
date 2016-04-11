@@ -78,6 +78,16 @@
           {}
           properties))
 
+(defn- read-env-vars
+  "Read the known variables from the system environment.
+  Environment vars use all uppercase, and _ for . characters"
+  []
+  (let [env-name #(-> % (str/replace #"\." "_") str/upper-case)
+        env-names (set (map env-name configurable-properties))]
+    (->> (System/getenv)
+         (filter #(env-names (key %)))
+         (into {}))))
+
 (defn init!
   "Read a properties file, merge it with system properties, coerce and
    validate it, transform it into a nested map with keyword keys, and
@@ -88,4 +98,5 @@
                            configurable-properties))
        coerce-properties
        transform
+       (#(merge % (read-env-vars)))
        (reset! properties)))
