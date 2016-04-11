@@ -78,14 +78,21 @@
           {}
           properties))
 
+(defn- map-keys
+  "Apply a map to all keys in a map, returning a map with the new keys"
+  [f m]
+  (into {} (map (fn [[k v]] [(f k) v]) m)))
+
 (defn- read-env-vars
   "Read the known variables from the system environment.
   Environment vars use all uppercase, and _ for . characters"
   []
   (let [env-name #(-> % (str/replace #"\." "_") str/upper-case)
+        prop-name #(-> % str/lower-case (str/replace #"_" "."))
         env-names (set (map env-name configurable-properties))]
     (->> (System/getenv)
          (filter #(env-names (key %)))
+         (map-keys prop-name)
          (into {}))))
 
 (defn init!
