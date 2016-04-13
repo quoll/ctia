@@ -1,11 +1,11 @@
 (ns ctia.events
   (:require [ctia.events.schemas :as es]
+            [ctia.schemas.judgement :as sj]
             [ctia.lib.time :as time]
             [ctia.schemas.common :as c]
             [ctia.schemas.verdict :as v]
             [ctia.store :refer [create-judgement delete-judgement]]
-            [clj-time.core :as time]
-            [clojure.core.async :as a]
+            [clojure.core.async :as a :refer [go-loop <!]]
             [schema.core :as s])
   (:import [clojure.core.async Mult]
            [clojure.core.async.impl.protocols Channel]
@@ -78,19 +78,16 @@
   "Builds a creation event and sends it to the provided channel. Use the central channel by default."
   ([owner :- s/Str
     http-params :- c/HttpParams  ; maybe { s/Key s/Any }
-    model-type :- s/Str
     new-model :- {s/Any s/Any}]
-   (send-create-event @central-channel owner http-params model-type new-model))
+   (send-create-event @central-channel owner http-params new-model))
   ([echan :- EventChannel
     owner :- s/Str
     http-params :- c/HttpParams
-    model-type :- s/Str
     new-model :- {s/Any s/Any}]
    (send-event echan {:type es/CreateEventType
                       :owner owner
                       :timestamp (time/now)
                       :http-params http-params
-                      :model-type model-type
                       :id (or (:id new-model) (gensym "event"))
                       :model new-model})))
 
@@ -163,13 +160,13 @@
   [store :- IJudgementStore
    {m :mult :as ec} :- EventChannel
    login]
-  (go (loop [event (<! m)]
-        (let [{t :type} event]
-          (condp = t
-            ;; TODO - check that this interpretation of model-type is correct
-            es/CreateEventType (when (= sj/Type (:model-type event))
-                                 (create-judgement store login judgement))
-            es/DeleteEventType (delete-judgement store (:id event))
-            nil)
-          (recur (<! m))))))
+  (go-loop []
+    (when-let [event (<! m)]
+      (let [{t :type} event]
+        (condp = t
+          es/CreateEventType (when (= "judgement" (:type (:model event)))
+                               (create-judgement store (:model event)))
+          es/DeleteEventType (delete-judgement store (:id event))
+          nil)
+        (recur)))))
   

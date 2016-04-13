@@ -12,7 +12,7 @@
   (e/init!)
   (let [{b :chan-buf c :chan m :mult :as ev} @e/central-channel]
     (log-channel ev)
-    (e/send-create-event "tester" {} "TestModelType" {:data 1})
+    (e/send-create-event "tester" {} {:data 1})
     (Thread/sleep 100))) ;; wait until the go loop is done
   
 (deftest test-logged
@@ -24,7 +24,7 @@
                       (.append sb "\n"))]
     (with-redefs [log/log* patched-log]
       (log-channel ev)
-      (e/send-create-event "tester" {} "TestModelType" {:data 1})
+      (e/send-create-event "tester" {} {:data 1})
       (e/send-event {:owner "tester" :http-params {} :data 2})
       (Thread/sleep 100)   ;; wait until the go loop is done
       (let [scrubbed (-> (str sb)

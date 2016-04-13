@@ -11,8 +11,8 @@
   (let [{b :chan-buf c :chan m :mult :as ec} (new-event-channel)
         output (chan)]
     (tap m output)
-    (send-create-event ec "tester" {} "TestModelType" {:data 1})
-    (send-create-event ec "tester" {} "TestModelType" {:data 2})
+    (send-create-event ec "tester" {} {:data 1})
+    (send-create-event ec "tester" {} {:data 2})
     (is (thrown? AssertionError
                  (send-event ec {:http-params {}})))
     (send-event ec {:owner "tester" :http-params {} :data 3})
@@ -26,8 +26,8 @@
   (let [{b :chan-buf c :chan m :mult} @central-channel
         output (chan)]
     (tap m output)
-    (send-create-event "tester" {} "TestModelType" {:data 1})
-    (send-create-event "tester" {} "TestModelType" {:data 2})
+    (send-create-event "tester" {} {:data 1})
+    (send-create-event "tester" {} {:data 2})
     (is (thrown? AssertionError
                  (send-event {:http-params {}})))
     (send-event {:owner "tester" :http-params {} :data 3})
@@ -70,14 +70,14 @@
   "Tests that the sliding window works, and is repeatable"
   (binding [*event-buffer-size* 3]
     (init!)
-    (send-create-event "tester" {} "TestModelType" {:id "1"})
-    (send-create-event "tester" {} "TestModelType" {:id "2"})
-    (send-create-event "tester" {} "TestModelType" {:id "3"})
+    (send-create-event "tester" {} {:id "1"})
+    (send-create-event "tester" {} {:id "2"})
+    (send-create-event "tester" {} {:id "3"})
     (Thread/sleep 100)
     (is (= ["1" "2" "3"] (map (comp :id :model) (recent-events))))
-    (send-create-event "tester" {} "TestModelType" {:id "4"})
-    (send-create-event "tester" {} "TestModelType" {:id "5"})
-    (send-create-event "tester" {} "TestModelType" {:id "6"})
-    (send-create-event "tester" {} "TestModelType" {:id "7"})
+    (send-create-event "tester" {} {:id "4"})
+    (send-create-event "tester" {} {:id "5"})
+    (send-create-event "tester" {} {:id "6"})
+    (send-create-event "tester" {} {:id "7"})
     (Thread/sleep 100)
     (is (= ["5" "6" "7"] (map (comp :id :model) (recent-events))))))
