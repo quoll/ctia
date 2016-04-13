@@ -30,5 +30,5 @@
       (let [scrubbed (-> (str sb)
                       (str/replace #"#inst \"[^\"]*\"" "#inst \"\"")
                       (str/replace #":id event[^,]*" ":id event"))
-          expected "event: {:type CreatedModel, :owner tester, :timestamp #inst \"\", :http-params {}, :model-type TestModelType, :id event, :model {:data 1}}\nevent: {:owner tester, :http-params {}, :data 2, :timestamp #inst \"\"}\n"]
+          expected "event: {:type CreatedModel, :owner tester, :timestamp #inst \"\", :http-params {}, :id event, :model {:data 1}}\nevent: {:owner tester, :http-params {}, :data 2, :timestamp #inst \"\"}\n"]
       (is (= expected scrubbed))))))
