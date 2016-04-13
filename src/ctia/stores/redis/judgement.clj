@@ -1,4 +1,4 @@
-(ns ctia.stores.ctia.judgement
+(ns ctia.stores.redis.judgement
   (:require [ctia.schemas.common :as c]
             [ctia.schemas.judgement
              :refer [NewJudgement StoredJudgement realize-judgement]]
