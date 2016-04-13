@@ -4,14 +4,12 @@
             alternative properties file on the classpath, or by
             setting system properties."}
     ctia.properties
-  (:refer-clojure :exclude [load])
-  (:require [clojure.java.io :as io]
-            [clojure.string :as str]
-            [ctia.lib.map :as map]
-            [schema.coerce :as c]
-            [schema.core :as s]
-            [clj-time.coerce :as coerce])
-  (:import java.util.Properties))
+    (:require [clojure.java.io :as io]
+              [clojure.string :as str]
+              [ctia.lib.map :as map]
+              [schema.coerce :as c]
+              [schema.core :as s])
+    (:import java.util.Properties))
 
 (def files
   "Property file names, they will be merged, with last one winning"
@@ -28,9 +26,15 @@
    properties must be present.  Only the following properties may be
    set.  This is also used for selecting system properties to merge
    with the properties file."
-  {(s/required-key "auth.service.type") s/Keyword
+  {(s/required-key "ctia.auth.type") s/Keyword
+   (s/required-key "ctia.http.port") s/Int
+   (s/required-key "ctia.http.min-threads") s/Int
+   (s/required-key "ctia.http.max-threads") s/Int
+   (s/optional-key "ctia.http.dev-reload") s/Bool
+   (s/required-key "ctia.nrepl.enabled") s/Bool
    (s/optional-key "auth.service.threatgrid.url") s/Str
-   (s/optional-key "ctia.store.default") s/Keyword
+   (s/optional-key "ctia.nrepl.port") s/Int
+   (s/optional-key "ctia.store.type") s/Keyword
    (s/optional-key "ctia.store.sql.db.classname") s/Str
    (s/optional-key "ctia.store.sql.db.subprotocol") s/Str
    (s/optional-key "ctia.store.sql.db.subname") s/Str
@@ -69,7 +73,6 @@
   (reduce (fn [accum [k v]]
             (let [parts (->> (str/split k #"\.")
                              (map keyword))]
-              parts
               (cond
                 (empty? parts) accum
                 (= 1 (count parts)) (assoc accum (first parts) v)
