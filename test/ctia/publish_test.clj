@@ -6,7 +6,7 @@
             [schema.test :as st]
             ))
 
-(deftest test-events
+(deftest ^:integration test-events
   (e/init!)
   (pub/init!)
   (let [results (atom [])]
