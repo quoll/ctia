@@ -14,8 +14,9 @@
 (defn init!
   "Initializes publishing. Right now, this means Redis."
   []
-  (redis/set-listener-fn! async-listener)
-  (e/register-listener redis/publish-fn))
+  (when (redis/enabled?)
+    (redis/set-listener-fn! async-listener)
+    (e/register-listener redis/publish-fn)))
 
 (s/defn event-subscribe
   "Registers a function to be called with all new events published through Redis."
