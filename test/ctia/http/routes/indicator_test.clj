@@ -105,6 +105,8 @@
                                       :source "source"
                                       :relationship "relationship"
                                       :campaign_id "campaign-123"}]
+                 :composite_indicator_expression {:operator "and"
+                                                  :indicator_ids ["test1" "test2"]}
                  :related_COAs [{:confidence "High"
                                  :source "source"
                                  :relationship "relationship"
@@ -203,6 +205,8 @@
                                          :source "source"
                                          :relationship "relationship"
                                          :campaign_id "campaign-123"}]
+                    :composite_indicator_expression {:operator "and"
+                                                     :indicator_ids ["test1" "test2"]}
                     :related_COAs [{:confidence "High"
                                     :source "source"
                                     :relationship "relationship"
@@ -217,5 +221,3 @@
                                :headers {"api_key" "45c1f5e3f05d0"})]
           ;; Deleting indicators is not allowed
           (is (= 404 (:status response))))))))
-
-
