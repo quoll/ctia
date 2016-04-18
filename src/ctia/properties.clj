@@ -40,6 +40,7 @@
    (s/optional-key "ctia.store.sql.db.subprotocol") s/Str
    (s/optional-key "ctia.store.sql.db.subname") s/Str
    (s/optional-key "ctia.store.sql.db.delimiters") s/Str
+   (s/optional-key "ctia.store.redis.enabled") s/Bool
    (s/optional-key "ctia.store.redis.uri") s/Str
    (s/optional-key "ctia.store.redis.host") s/Str
    (s/optional-key "ctia.store.redis.port") s/Int
