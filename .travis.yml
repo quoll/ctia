@@ -18,6 +18,7 @@ before_script:
     - until curl http://localhost:9200/; do sleep 1; done
 services:
     - elasticsearch
+    - redis
 # notifications:
 #   hipchat: [api token]@[room id or name]
 env:
