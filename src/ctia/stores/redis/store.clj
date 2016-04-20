@@ -57,6 +57,8 @@
   "Closes the central Redis subscription listener"
   []
   (when @pubsub-listener
+    (c/with-open-listener
+      (c/unsubscribe))
     (c/close-listener @pubsub-listener)))
 
 (defn set-listener-fn!

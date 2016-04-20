@@ -3,7 +3,7 @@
             [ctia.lib.time :as time]
             [ctia.schemas.common :as c]
             [ctia.schemas.verdict :as v]
-            [clojure.core.async :as a :refer [go-loop <! chan tap]]
+            [clojure.core.async :as a :refer [go-loop alt! chan tap]]
             [schema.core :as s :refer [=>]])
   (:import [clojure.core.async Mult]
            [clojure.core.async.impl.protocols Channel]
@@ -182,13 +182,16 @@
     shutdown-fn :- (s/maybe (=> s/Any))]
    (let [events (chan)]
      (tap m events)
-     (let [ch (go-loop []
-                (when-let [event (<! events)]
-                  (when (pred event)
-                    (f event))
-                  (recur)))]
+     (let [end-chan (chan)
+           ch (go-loop []
+                (if-let [event (alt! [events end-chan] ([v] v))]
+                  (do
+                    (when (pred event)
+                      (f event))
+                    (recur))
+                  (a/close! events)))]
        (.addShutdownHook (Runtime/getRuntime)
                          (Thread. #(do (a/close! ch)
                                        (when (fn? shutdown-fn)
                                          (shutdown-fn)))))
-       ch))))
+       end-chan))))

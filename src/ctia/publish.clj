@@ -21,10 +21,11 @@
 (s/defn event-subscribe
   "Registers a function to be called with all new events published through Redis."
   [f :- (=> s/Any e/Event)]
-  (letfn [(event-fn [[msg-type channel-name event]]
-            (when (= "message" msg-type)
-              (f event)))]
-    (e/register-listener publish-channel
-                         event-fn
-                         (constantly true)
-                         redis/close!)))
+  (when (redis/enabled?)
+    (letfn [(event-fn [[msg-type channel-name event]]
+              (when (= "message" msg-type)
+                (f event)))]
+      (e/register-listener publish-channel
+                           event-fn
+                           (constantly true)
+                           redis/close!))))
